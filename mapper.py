@@ -1,6 +1,8 @@
 
 from inputs import devices
 from inputs import get_gamepad
+import pyautogui
+import numpy as np
 
 
 # This is a sample Python script.
@@ -25,6 +27,10 @@ def print_hi(name):
     #random deadzone that i just came up with. if the value is within this radius of zero, dont do anything.
     deadzone = 7000;
 
+    #mouse sentivity
+    xSensitivity = 50;
+    ySensitivity = 50;
+
     while 1:
         events = get_gamepad()
         for event in events:
@@ -33,7 +39,12 @@ def print_hi(name):
             if (event.state >= deadzone or event.state <= -deadzone):
                 if (event.code == "ABS_X"):
                     print(event.code, event.state)
-                    print("\tWE DID IT")
+                    pyautogui.moveRel(np.sign(int(event.state)) * 50, 0, duration=0)
+                    print("\tHORIZONTAL MOVEMENT")
+                if (event.code == "ABS_Y"):
+                    print(event.code, event.state)
+                    pyautogui.moveRel(0, -np.sign(int(event.state)) * 50, duration=0)
+                    print("\tVERTICAL MOVEMENT")
 
 
 # Press the green button in the gutter to run the script.
