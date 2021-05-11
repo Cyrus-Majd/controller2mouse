@@ -46,9 +46,12 @@ def print_hi(name):
                     pyautogui.moveRel(0, -np.sign(int(event.state)) * 50, duration=0)
                     print("\tVERTICAL MOVEMENT")
 
+def main():
+
 
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+if __name__ == "__main__":
+	""" This is executed when run from the command line """
+	main()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
