@@ -15,6 +15,7 @@ import numpy as np
 def print_hi():
 
     # start multiprocessing
+    #in this thread
 
     # for device in devices:
     #     print(devices)
