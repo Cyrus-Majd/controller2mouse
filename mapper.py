@@ -5,6 +5,7 @@ from threading import Thread
 from time import sleep
 import pyautogui
 import numpy as np
+import pandas as pd
 
 
 # This is a sample Python script.
