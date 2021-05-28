@@ -20,6 +20,7 @@ def print_hi():
 
     # for device in devices:
     #     print(devices)
+    #bruh you know what i mean
 
 
 
