@@ -4,6 +4,7 @@ from inputs import get_gamepad
 from time import sleep
 import math
 import threading
+import multiprocessing
 import pyautogui
 import numpy as np
 import pandas as pds
@@ -55,6 +56,11 @@ class Controller(threading.Thread):
         print(devices.keyboards)
         print(devices.mice)
         print(devices.other_devices)
+        
+        mouseDownFlag = False
+        mouseUpFlag = False
+        mouseDownProcess = multiprocessing.Process(target=PutMouseDown, args=())
+        mouseUpProcess = multiprocessing.Process(target=PutMouseUp, args=())
 
         while (self.livingFlag):
             events = get_gamepad()
@@ -62,22 +68,31 @@ class Controller(threading.Thread):
                 if (event.state >= self.deadzone or event.state <= -self.deadzone):     # beyond deadzone
                     ## MIN/MAX X VALUE: -32768 --> 32767
                     ## MIN/MAX Y VALUE: 32767 --> -32768
+
+                    # pick up X detection
                     if (event.code == "ABS_X"):
-                        # print(event.code, event.state, math.fabs(int(event.state) / 32767))
                         self.xMotion = np.sign(int(event.state)) * self.xSensitivity
                         self.xAmplitude = math.fabs(int(event.state) / 32768)
-                        # print("\tHORIZONTAL MOVEMENT, AMP:", self.xAmplitude)
-                    if (event.code == "ABS_Y"):
-                        # print(event.code, event.state, math.fabs(int(event.state) / 32767))
+                    # pick up Y detection
+                    elif (event.code == "ABS_Y"):
                         self.yMotion = -np.sign(int(event.state)) * self.ySensitivity
                         self.yAmplitude = math.fabs(int(event.state) / 32768)
-                        # print("\tVERTICAL MOVEMENT, AMP:", self.yAmplitude)
-                # elif (event.state <= self.deadzone and event.state >= -self.deadzone):    # within deadzone
-                    # self.xAmplitude = 0
-                    # self.yAmplitude = 0
-                #     print("IN CENTER, AMPS:", self.xAmplitude, self.yAmplitude)
-                # else:
-                #     print("NO MOVEMENT, AMPS:", self.xAmplitude, self.yAmplitude)
+                    # pick up mouse click
+                    elif (event.code == "BTN_SOUTH"):
+                        print(event.code)
+                        if (mouseDownFlag):
+                            mouseDownProcess.terminate()
+                            mouseDownFlag = False
+                            mouseUpProcess.start()
+                            mouseUpFlag = True
+                        else:
+                            if (mouseUpFlag):
+                                mouseUpProcess.terminate()
+                                mouseUpFlag = False
+                            mouseDownProcess.start()
+                            mouseDownFlag = True
+                    elif (event.code == "BTN_EAST"):
+                        pyautogui.click(button = "right")
     
     # Default threading entry method.
     def run(self):
@@ -104,11 +119,16 @@ def calculatePath(xMotion, yMotion, xAmp, yAmp):
 
     moveCursor(xPosition, xDestination, yPosition, yDestination)
 
+# Multiprocessing methods for mouse down and up
+def PutMouseDown():
+    pyautogui.mouseDown()
+
+def PutMouseUp():
+    pyautogui.mouseUp()
+
 # Main method.
 def main():
     pyautogui.FAILSAFE = False
-
-    # calculatePath(100, -100, 3, 3)
 
     controllerObj = Controller(100, 100, 0)
     controllerObj.start()
