@@ -2,6 +2,7 @@ from __future__ import division
 from inputs import devices
 from inputs import get_gamepad
 from time import sleep
+import time
 import math
 import threading
 import multiprocessing
@@ -39,9 +40,11 @@ class Controller(threading.Thread):
         self.yAmplitude = 0
 
         self.livingFlag = True
+
         self.xSensitivity = xSensitivity
         self.ySensitivity = ySensitivity
         self.deadzone = deadzone
+
         threading.Thread.__init__(self)
         self.threadLock = threading.Lock()
 
@@ -56,11 +59,6 @@ class Controller(threading.Thread):
         print(devices.keyboards)
         print(devices.mice)
         print(devices.other_devices)
-        
-        mouseDownFlag = False
-        mouseUpFlag = False
-        mouseDownProcess = multiprocessing.Process(target=PutMouseDown, args=())
-        mouseUpProcess = multiprocessing.Process(target=PutMouseUp, args=())
 
         while (self.livingFlag):
             events = get_gamepad()
@@ -73,24 +71,20 @@ class Controller(threading.Thread):
                     if (event.code == "ABS_X"):
                         self.xMotion = np.sign(int(event.state)) * self.xSensitivity
                         self.xAmplitude = math.fabs(int(event.state) / 32768)
+
                     # pick up Y detection
                     elif (event.code == "ABS_Y"):
                         self.yMotion = -np.sign(int(event.state)) * self.ySensitivity
                         self.yAmplitude = math.fabs(int(event.state) / 32768)
+
                     # pick up mouse click
                     elif (event.code == "BTN_SOUTH"):
-                        print(event.code)
-                        if (mouseDownFlag):
-                            mouseDownProcess.terminate()
-                            mouseDownFlag = False
-                            mouseUpProcess.start()
-                            mouseUpFlag = True
+                        if (int(event.state) == 1):
+                            pyautogui.mouseDown(button = "left")
                         else:
-                            if (mouseUpFlag):
-                                mouseUpProcess.terminate()
-                                mouseUpFlag = False
-                            mouseDownProcess.start()
-                            mouseDownFlag = True
+                            pyautogui.mouseUp(button = "left")
+                            
+                    # pick up right mouse click (B button)
                     elif (event.code == "BTN_EAST"):
                         pyautogui.click(button = "right")
     
@@ -118,13 +112,6 @@ def calculatePath(xMotion, yMotion, xAmp, yAmp):
     print(xPosition, yPosition, xDestination, yDestination)
 
     moveCursor(xPosition, xDestination, yPosition, yDestination)
-
-# Multiprocessing methods for mouse down and up
-def PutMouseDown():
-    pyautogui.mouseDown()
-
-def PutMouseUp():
-    pyautogui.mouseUp()
 
 # Main method.
 def main():
