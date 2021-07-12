@@ -77,14 +77,14 @@ class Controller(threading.Thread):
                         self.yMotion = -np.sign(int(event.state)) * self.ySensitivity
                         self.yAmplitude = math.fabs(int(event.state) / 32768)
 
-                    # pick up mouse click
+                    # pick up mouse right click (A button)
                     elif (event.code == "BTN_SOUTH"):
                         if (int(event.state) == 1):
                             pyautogui.mouseDown(button = "left")
                         else:
                             pyautogui.mouseUp(button = "left")
                             
-                    # pick up right mouse click (B button)
+                    # pick up right mouse left click (B button)
                     elif (event.code == "BTN_EAST"):
                         pyautogui.click(button = "right")
     
