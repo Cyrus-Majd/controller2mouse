@@ -33,16 +33,25 @@ class ProgramManager(threading.Thread):
 class Controller(threading.Thread):
 
     # Constructor.
-    def __init__(self, xSensitivity, ySensitivity, deadzone):
+    def __init__(self, xSensitivity, ySensitivity, deadzone, scrollSensitivity):
+
+        # parameters for left joystick
         self.xMotion = 0
         self.yMotion = 0
         self.xAmplitude = 0
         self.yAmplitude = 0
 
+        # parameters for right joystick
+        self.yMotionRIGHT = 0
+        self.yAmplitudeRIGHT = 0
+
+        # thread execution flag, set to false to kill thread
         self.livingFlag = True
 
+        # sensitivity and deadzone of both joysticks.
         self.xSensitivity = xSensitivity
         self.ySensitivity = ySensitivity
+        self.scrollSensitivity = scrollSensitivity
         self.deadzone = deadzone
 
         threading.Thread.__init__(self)
@@ -87,6 +96,25 @@ class Controller(threading.Thread):
                     # pick up right mouse left click (B button)
                     elif (event.code == "BTN_EAST"):
                         pyautogui.click(button = "right")
+
+                    # pick up Y button (mapped to ENTER key)
+                    elif (event.code == "BTN_NORTH"):
+                        if (int(event.state) == 1):
+                            pyautogui.press("enter")
+
+                    # pick up X button (mapped to BACKSPACE)
+                    elif (event.code == "BTN_WEST"):
+                        if (int(event.state) == 0):
+                            pyautogui.press("backspace")
+
+                    elif (event.code == "ABS_RY"):
+                        # print("DETECTED!")
+                        self.yMotionRIGHT = np.sign(int(event.state)) * self.scrollSensitivity
+                        self.yAmplitudeRIGHT = math.fabs(int(event.state) / 32768)
+                    
+                    elif (event.code == "BTN_TR"):
+                        print(event.code, event.state)
+
     
     # Default threading entry method.
     def run(self):
@@ -117,7 +145,7 @@ def calculatePath(xMotion, yMotion, xAmp, yAmp):
 def main():
     pyautogui.FAILSAFE = False
 
-    controllerObj = Controller(100, 100, 0)
+    controllerObj = Controller(100, 100, 0, 500)
     controllerObj.start()
 
     sleep(1)
@@ -130,8 +158,11 @@ def main():
         if (controllerObj.xAmplitude > .05 or controllerObj.yAmplitude > .05):
             # print("\tXMOTION: ", controllerObj.xMotion, "YMOTION:", controllerObj.yMotion, "AMPx:", controllerObj.xAmplitude, "AMPy:", controllerObj.yAmplitude)
             # moveCursor(calculatePath(controllerObj.xMotion, controllerObj.yMotion, controllerObj.xAmplitude, controllerObj.yAmplitude))
-            pyautogui.moveRel(controllerObj.xMotion * controllerObj.xAmplitude, controllerObj.yMotion * controllerObj.yAmplitude, duration=.1)  ## MOVE X VALUE
-            # pyautogui.moveRel(0, controllerObj.yMotion * controllerObj.yAmplitude, duration=.15) ## MOVE Y VALUE
+            pyautogui.moveRel(controllerObj.xMotion * controllerObj.xAmplitude, controllerObj.yMotion * controllerObj.yAmplitude, duration=.1)  ## MOVE MOUSE
+
+        # controls scrolling
+        if (controllerObj.yAmplitudeRIGHT > .05):
+            pyautogui.scroll(int(controllerObj.yMotionRIGHT * controllerObj.yAmplitudeRIGHT))
     
     controllerObj.livingFlag = False
     controllerObj.join()
