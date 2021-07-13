@@ -112,8 +112,17 @@ class Controller(threading.Thread):
                         self.yMotionRIGHT = np.sign(int(event.state)) * self.scrollSensitivity
                         self.yAmplitudeRIGHT = math.fabs(int(event.state) / 32768)
                     
+                    elif (event.code == "BTN_TL"):
+                        if (int(event.state) == 0):
+                            pyautogui.keyDown("ctrl")
+                            pyautogui.press("c")
+                            pyautogui.keyUp("ctrl")
+
                     elif (event.code == "BTN_TR"):
-                        print(event.code, event.state)
+                        if (int(event.state) == 0):
+                            pyautogui.keyDown("ctrl")
+                            pyautogui.press("v")
+                            pyautogui.keyUp("ctrl")
 
     
     # Default threading entry method.
